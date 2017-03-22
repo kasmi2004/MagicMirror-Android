@@ -71,6 +71,8 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import cn.ilell.magicmirror.inter.PictureCallback;
+
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback {
 
@@ -244,7 +246,8 @@ public class Camera2BasicFragment extends Fragment
         @Override
         public void onImageAvailable(ImageReader reader) {
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
-            //获得图片数据
+            //处理图片数据
+            pictureCallback.dealPicture(reader.acquireNextImage());
         }
 
     };
@@ -280,6 +283,15 @@ public class Camera2BasicFragment extends Fragment
      * Orientation of the camera sensor
      */
     private int mSensorOrientation;
+
+    /**
+     * 带有处理照片的方法
+     */
+    private PictureCallback pictureCallback;
+
+    public void setPictureCallback(PictureCallback callback) {
+        pictureCallback = callback;
+    }
 
     /**
      * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
