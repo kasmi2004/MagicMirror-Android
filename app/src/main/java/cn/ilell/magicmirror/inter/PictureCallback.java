@@ -7,5 +7,5 @@ import android.media.Image;
  */
 
 public interface PictureCallback {
-    public void dealPicture(Image image);
+    public void dealPicture(byte[] imageBytes);
 }

@@ -11,6 +11,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
+
 import cn.ilell.magicmirror.dialog.RulAndFeedbackDialog;
 import cn.ilell.magicmirror.inter.PictureCallback;
 
@@ -58,9 +60,9 @@ public class MainActivity extends AppCompatActivity implements PictureCallback{
     }
 
     @Override
-    public void dealPicture(Image image) {
+    public void dealPicture(byte[] imageBytes) {
         //建立连接
-//        Recognizer recognizer = new Recognizer();
+//        PictureRecognizer recognizer = new Recognizer();
         //发送图片，获取识别结果
 //        String rul = recognizer.recognizeImg(image);
         //显示识别结果，获取用户反馈
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements PictureCallback{
         rulAndFeedbackDialog = new RulAndFeedbackDialog(MainActivity.this);
         rulAndFeedbackDialog.setTitle("提示");
         rulAndFeedbackDialog.setMessage("确定退出应用?");
+        rulAndFeedbackDialog.setImage(imageBytes);
         rulAndFeedbackDialog.setYesOnclickListener("正确", new RulAndFeedbackDialog.onYesOnclickListener() {
             @Override
             public void onYesClick() {
@@ -87,8 +90,7 @@ public class MainActivity extends AppCompatActivity implements PictureCallback{
             }
         });
         rulAndFeedbackDialog.show();
-
-
+        return;
     }
 
 }

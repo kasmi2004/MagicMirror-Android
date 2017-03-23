@@ -2,25 +2,34 @@ package cn.ilell.magicmirror.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import edu.cmu.pocketsphinx.demo.RecognitionListener;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import cn.ilell.magicmirror.R;
+import cn.ilell.magicmirror.util.PocketSphinxUtil;
 
 /**
  * 创建自定义的dialog
  * Created by chengguo on 2016/3/22.
  */
-public class RulAndFeedbackDialog extends Dialog {
-
+public class RulAndFeedbackDialog extends Dialog implements RecognitionListener {
+    private Context mContext;
     private Button yes;//确定按钮
     private Button no;//取消按钮
     private TextView titleTv;//消息标题文本
     private TextView messageTv;//消息提示文本
+    private ImageView imageView;//识别图片
+
     private String titleStr;//从外界设置的title文本
     private String messageStr;//从外界设置的消息文本
+    private byte[] imageBytes;//从外界设置的图片
     //确定文本和取消文本的显示内容
     private String yesStr, noStr;
 
@@ -55,6 +64,7 @@ public class RulAndFeedbackDialog extends Dialog {
 
     public RulAndFeedbackDialog(Context context) {
         super(context, R.style.SelectDialog);
+        mContext = context;
     }
 
     @Override
@@ -70,7 +80,16 @@ public class RulAndFeedbackDialog extends Dialog {
         initData();
         //初始化界面控件的事件
         initEvent();
+        //初始化语音识别器
+        PocketSphinxUtil.get(mContext).setListener(this);
+        PocketSphinxUtil.get(mContext).start();
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        PocketSphinxUtil.get(mContext).stop();
     }
 
     /**
@@ -108,6 +127,10 @@ public class RulAndFeedbackDialog extends Dialog {
         if (messageStr != null) {
             messageTv.setText(messageStr);
         }
+        if (imageBytes != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+            imageView.setImageBitmap(bitmap);
+        }
         //如果设置按钮的文字
         if (yesStr != null) {
             yes.setText(yesStr);
@@ -125,7 +148,10 @@ public class RulAndFeedbackDialog extends Dialog {
         no = (Button) findViewById(R.id.no);
         titleTv = (TextView) findViewById(R.id.title);
         messageTv = (TextView) findViewById(R.id.message);
+        imageView = (ImageView) findViewById(R.id.imageView);
     }
+
+
 
     /**
      * 从外界Activity为Dialog设置标题
@@ -143,6 +169,62 @@ public class RulAndFeedbackDialog extends Dialog {
      */
     public void setMessage(String message) {
         messageStr = message;
+    }
+
+    /**
+     * 从外界Activity为Dialog设置图片
+     * @param bytes
+     */
+    public void setImage(byte[] bytes) {
+        imageBytes = bytes;
+    }
+
+    /**
+     * 回调，返回部分语音识别结果
+     * @param b
+     *            Bundle containing the partial result string under the "hyp"
+     */
+    @Override
+    public void onPartialResults(String b) {
+        Toast.makeText(mContext, "2" + b, Toast.LENGTH_SHORT).show();
+        if(b.equals("正确")) {
+            if (yesOnclickListener != null) {
+                yesOnclickListener.onYesClick();
+            }
+        }
+        else if(b.equals("错误")) {
+            if (noOnclickListener != null) {
+                noOnclickListener.onNoClick();
+            }
+        }
+    }
+
+    /**
+     * 回调，返回所有语音识别结果
+     * @param b
+     */
+    @Override
+    public void onResults(String b) {
+        Toast.makeText(mContext, "1=" + b, Toast.LENGTH_SHORT).show();
+        if(b.equals("正确")) {
+            if (yesOnclickListener != null) {
+                yesOnclickListener.onYesClick();
+            }
+        }
+        else if(b.equals("错误")) {
+            if (noOnclickListener != null) {
+                noOnclickListener.onNoClick();
+            }
+        }
+    }
+
+    /**
+     * 语音识别出错
+     * @param err
+     */
+    @Override
+    public void onError(int err) {
+
     }
 
     /**

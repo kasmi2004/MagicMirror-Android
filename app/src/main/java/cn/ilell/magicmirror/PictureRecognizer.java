@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
  * Created by lhc35 on 2017/3/22.
  */
 
-public class Recognizer {
+public class PictureRecognizer {
     private Socket mSock;
     private OutputStream outputStream;
     private InputStream inputStream;
@@ -24,7 +24,7 @@ public class Recognizer {
     private ObjectInputStream objectInputStream;
     //    private Image mImage;
 
-    public Recognizer() {
+    public PictureRecognizer() {
         try{
             mSock = new Socket("127.0.0.1",3538);
             // 获取Socket的Stream对象用于读取、发送数据

@@ -245,9 +245,15 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            //存储图片
+//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
             //处理图片数据
-            pictureCallback.dealPicture(reader.acquireNextImage());
+            Image image = reader.acquireNextImage();
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            pictureCallback.dealPicture(bytes);
+            image.close();
         }
 
     };
@@ -289,6 +295,10 @@ public class Camera2BasicFragment extends Fragment
      */
     private PictureCallback pictureCallback;
 
+    /**
+     * 设置拍照后回调对象
+     * @param callback
+     */
     public void setPictureCallback(PictureCallback callback) {
         pictureCallback = callback;
     }
@@ -848,7 +858,7 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
+//                    showToast("Saved: " + mFile);
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
@@ -900,10 +910,6 @@ public class Camera2BasicFragment extends Fragment
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab_recognize: {
-                new AlertDialog.Builder(getActivity())
-                        .setMessage("test")
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
                 takePicture();
                 break;
             }
@@ -968,7 +974,6 @@ public class Camera2BasicFragment extends Fragment
                 }
             }
         }
-
     }
 
     /**
