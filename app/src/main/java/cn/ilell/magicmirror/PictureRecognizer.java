@@ -1,12 +1,21 @@
 package cn.ilell.magicmirror;
 
 import android.media.Image;
+import android.util.Log;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -16,51 +25,56 @@ import java.nio.ByteBuffer;
  * Created by lhc35 on 2017/3/22.
  */
 
-public class PictureRecognizer {
+public class PictureRecognizer{
     private Socket mSock;
-    private OutputStream outputStream;
-    private InputStream inputStream;
-    private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
+    DataInputStream dataInputStream;
+    DataOutputStream dataOutputStream;
+    BufferedReader bufferedReader;
+    BufferedWriter bufferedWriter;
     //    private Image mImage;
 
     public PictureRecognizer() {
         try{
-            mSock = new Socket("127.0.0.1",3538);
+            mSock = new Socket("192.168.0.196",3538);
             // 获取Socket的Stream对象用于读取、发送数据
-            outputStream = mSock.getOutputStream();
-            inputStream = mSock.getInputStream();
-            objectInputStream = new ObjectInputStream(inputStream);
-            objectOutputStream = new ObjectOutputStream(outputStream);
+            dataInputStream = new DataInputStream(mSock.getInputStream());
+            InputStreamReader inSR = new InputStreamReader(dataInputStream, "UTF-8");
+            bufferedReader = new BufferedReader(inSR);
+
+            dataOutputStream = new DataOutputStream(mSock.getOutputStream());
+            OutputStreamWriter outSW = new OutputStreamWriter(dataOutputStream, "UTF-8");
+            bufferedWriter = new BufferedWriter(outSW);
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            Log.i("abc", e.toString());
+            Log.i("abc", e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.i("abc", e.toString());
+            Log.i("abc", e.getMessage());
         }
 
     }
 
     /**
      * 识别图片
-     * @param image
+     * @param imageBytes
      * @return
      */
-    public String recognizeImg(Image image) {
-//        mImage = image;
+    public String recognizeImg(byte[] imageBytes) {
         String rul = "";
-        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
         //发送要识别的图片
         try{
-            outputStream.write(bytes);
-            outputStream.flush();
+            String file_size = String.format("%010d", imageBytes.length);
+            //发送图片大小
+            bufferedWriter.write(file_size);
+            bufferedWriter.flush();
+            //发送图片
+            dataOutputStream.write(imageBytes);
+            dataOutputStream.flush();
             //接收识别结果
-            rul = (String) objectInputStream.readObject();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            rul = bufferedReader.readLine();
+        } catch (Exception e) {
+            Log.i("abc", e.toString());
+            Log.i("abc", e.getMessage());
         }
         return rul;
     }
@@ -72,12 +86,17 @@ public class PictureRecognizer {
      */
     public boolean sendFeedback(String feedback){
         try {
-            objectOutputStream.write(feedback.getBytes());
-            objectOutputStream.flush();
+            bufferedWriter.write(feedback);
+            bufferedWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
         return true;
+    }
+
+    protected void finalize() throws Throwable {
+        mSock.close();
+        super.finalize();
     }
 }

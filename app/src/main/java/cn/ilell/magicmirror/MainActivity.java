@@ -62,21 +62,21 @@ public class MainActivity extends AppCompatActivity implements PictureCallback{
     @Override
     public void dealPicture(byte[] imageBytes) {
         //建立连接
-//        PictureRecognizer recognizer = new Recognizer();
+        final PictureRecognizer recognizer = new PictureRecognizer();
         //发送图片，获取识别结果
-//        String rul = recognizer.recognizeImg(image);
+        String rul = recognizer.recognizeImg(imageBytes);
         //显示识别结果，获取用户反馈
 
         rulAndFeedbackDialog = new RulAndFeedbackDialog(MainActivity.this);
         rulAndFeedbackDialog.setTitle("提示");
-        rulAndFeedbackDialog.setMessage("确定退出应用?");
+        rulAndFeedbackDialog.setMessage(rul);
         rulAndFeedbackDialog.setImage(imageBytes);
         rulAndFeedbackDialog.setYesOnclickListener("正确", new RulAndFeedbackDialog.onYesOnclickListener() {
             @Override
             public void onYesClick() {
                 Toast.makeText(MainActivity.this,"点击了--正确--按钮",Toast.LENGTH_LONG).show();
                 //将用户反馈发送给服务器
-//        recognizer.sendFeedback("yes");
+                recognizer.sendFeedback("y");
                 rulAndFeedbackDialog.dismiss();
             }
         });
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements PictureCallback{
             public void onNoClick() {
                 Toast.makeText(MainActivity.this,"点击了--错误--按钮",Toast.LENGTH_LONG).show();
                 //将用户反馈发送给服务器
-//        recognizer.sendFeedback("no");
+                recognizer.sendFeedback("n");
                 rulAndFeedbackDialog.dismiss();
             }
         });
